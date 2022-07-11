@@ -21,6 +21,7 @@
     ]
   },
   "dependencies": {
+    "@remix-project/remix-solidity": "^0.5.0",
     "preact": "^10.3.1"
   },
   "devDependencies": {
