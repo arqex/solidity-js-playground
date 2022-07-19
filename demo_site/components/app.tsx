@@ -1,8 +1,13 @@
 import { FunctionalComponent, h } from 'preact';
-import { printCompiler} from '../../src';
+import { useEffect } from 'preact/hooks';
+import { createPlayground, printCompiler} from '../../src';
 
 const App: FunctionalComponent = () => {
     printCompiler();
+
+    useEffect( () => {
+        createPlayground( document.querySelector('pre') );
+    });
 
     return (
         <div id="preact_root">
