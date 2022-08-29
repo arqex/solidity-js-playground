@@ -5,10 +5,12 @@ import Web3 from "web3";
 export class Blockchain {
   simulator: Provider
   web3: Web3
+  currentAccount: string
 
   constructor() {
     this.simulator = new Provider({});
     this.web3 = new Web3(this.simulator);
+    this.currentAccount = 'account_not_initialized';
     extend(this.simulator);
   }
 
@@ -16,9 +18,8 @@ export class Blockchain {
     this.simulator = new Provider({});
     this.web3 = new Web3(this.simulator);
     extend(this.simulator);
-    await this.resetAccounts();
-    const accounts = await this.getAccounts();
-    this.simulator.Transactions.init(accounts);
+    await this.simulator.init();
+    this.currentAccount = (await this.getAccounts())[0];
   }
 
   resetAccounts(): Promise<void> {
