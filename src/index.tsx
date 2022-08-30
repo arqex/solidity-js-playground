@@ -13,14 +13,5 @@ export async function createPlayground( node: HTMLElement ){
   console.log( content );
 
   render( Playground, playgroundContainer);
-  
-  /*
-  const compiledContract = await compileContract( content );
-
-  if( compiledContract ) {
-    const blockchain = await createBlockchain();
-    const contract = await deployContract( compiledContract, blockchain );
-  }
-  */
 }
 
