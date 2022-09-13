@@ -1,24 +1,43 @@
 import { ComponentChildren, FunctionalComponent, h } from 'preact';
 import { useState } from 'preact/hooks';
 import {Contract} from 'web3-eth-contract';
-import { ABIDescription, ABIParameter } from '@remix-project/remix-solidity';
+import { FunctionDescription, ABIParameter } from '@remix-project/remix-solidity';
+import { EVMConsoleCall } from 'src/types';
 
 interface MethodUIProps {
   contract: Contract;
-  fn: ABIDescription;
+  fn: FunctionDescription;
   from: string;
+  onMethodCalled: (logs: EVMConsoleCall) => void;
 }
 
-async function callContractMethod(contract: Contract, method: string | undefined, from: string,  inputValues: any[] = [] ): Promise<any> {
-  if( method === undefined ) return alert('Método desconocido');
-
+async function callContractMethod(contract: Contract, method: string, from: string, inputValues: any[] = [] ): Promise<EVMConsoleCall|undefined> {
   const fn = contract.methods?.[method];
-  if( fn === undefined ) return alert('Método desconocido')
+  if( fn === undefined ) return alert('Método desconocido');
 
   const runnableMethod = fn.apply(contract.methods, inputValues);
-  const response = await runnableMethod.call({from});
+  const result = await runnableMethod.call({from});
+  console.log('RESULT', result);
 
-  console.log('CAll', response);
+  return {
+    methodName: method,
+    args: inputValues,
+    result
+  }
+}
+
+async function sendContractMethod(contract: Contract, method: string, from: string, inputValues: any[] = []  ): Promise<EVMConsoleCall|undefined> {
+  const fn = contract.methods?.[method];
+  if( fn === undefined ) return alert('Método desconocido');
+
+  const runnableMethod = fn.apply(contract.methods, inputValues);
+  const receipt = await runnableMethod.send({from});
+
+  return {
+    methodName: method,
+    args: inputValues,
+    receipt
+  };
 }
 
 function getInitialValues(inputs: ABIParameter[]) {
@@ -31,9 +50,23 @@ function updateValue( setValue: fn, values: number[], index: number, value: stri
   setValue(updatedValues);
 }
 
-const MethodUI = ({contract, fn, from}: MethodUIProps) => {
+const MethodUI: FunctionalComponent<MethodUIProps> = ({contract, fn, from, onMethodCalled}: MethodUIProps) => {
+  const {stateMutability} = fn;
   const inputs: any[] = fn.inputs || [];
   const [values, setValue] = useState( getInitialValues(inputs) );
+
+  const methodCaller = async () => {
+    const method = stateMutability === 'view' || stateMutability === 'pure' ?
+      callContractMethod :
+      sendContractMethod
+    ;
+
+    const callResult = await method(contract, fn.name, from, values);
+    if( callResult !== undefined ){
+      onMethodCalled(callResult);
+    }
+  }
+
 
   return (
     <div>
@@ -43,7 +76,7 @@ const MethodUI = ({contract, fn, from}: MethodUIProps) => {
           <input key={input.name} name={input.name} value={ values[i] } onInput={ e => updateValue(setValue, values, i, e.target.value) } />
         ))}
       </div>
-      <div><button onClick={ () => callContractMethod(contract, fn.name, from, values) }>Run {fn.name}</button></div>
+      <div><button onClick={ methodCaller }>Run {fn.name}</button></div>
     </div>
   );
 }

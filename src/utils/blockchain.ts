@@ -30,6 +30,18 @@ export class Blockchain {
     return this.web3.eth.getAccounts();
   }
 
+  async getAccountWithBalances(): Promise<AccountWithBalances[]> {
+    const accountAddresses: string[]  = await this.getAccounts();
+    const balances: string[] = await Promise.all(
+        accountAddresses.map( (address: string) => this.getBalanceInEther(address) ) 
+    );
+    
+    return accountAddresses.map( (address, i) => ({
+      address,
+      balance: balances[i]
+    }));
+  }
+
   async getBalanceInEther (address: string): Promise<string>  {
     const balance = await this.web3.eth.getBalance(address);
     return Web3.utils.fromWei(new BN(balance).toString(10), 'ether');

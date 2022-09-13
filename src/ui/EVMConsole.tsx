@@ -1,11 +1,11 @@
 import { ComponentChildren, FunctionalComponent, h } from 'preact';
 
 interface EVMConsoleProps {
-  children?: ComponentChildren;
+  logs: string;
 }
 
-const EVMConsole: FunctionalComponent = (props: EVMConsoleProps) => {
-  return <div>Este es la consola</div>;
+const EVMConsole: FunctionalComponent<EVMConsoleProps> = (props: EVMConsoleProps) => {
+  return <pre className="sp_console">{props.logs}</pre>;
 }
 
 export default EVMConsole;
